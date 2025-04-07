@@ -20,9 +20,10 @@ void timeOutRequest(vector<int> &busyId)
 {
     for (int request_id : out_time_request[timestamp % EXTRA_TIME])  // 获取哪些请求超时
     {
-        if (!request[request_id].is_done)  // 如果这个请求还没完成
+        if (!request[request_id].is_done&&!object[request[request_id].object_id].is_delete)  // 如果这个请求还没完成
         {
             busyId.push_back(request_id);  // 记录超时请求
+            request[request_id].is_done = true;  // 标记请求完成
         }
         int object_id = request[request_id].object_id;  // 获取对象id
         for (int block_id : request[request_id].rest)   // 获取对象在哪个块
