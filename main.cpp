@@ -23,7 +23,7 @@ int main()
     // V: 每个磁盘的单元数 1 ≤ 𝑉 ≤ 16384
     // G: 每个磁头每个时间片的令牌数 64 ≤ 𝐺 ≤ 500 初赛是1000
     // K: 每次垃圾回收事件每个硬盘最多的交换存储单元的操作次数 0 ≤ 𝐾 ≤ 100
-    scanf("%d%d%d%d%d", &T, &M, &N, &V, &G, &K);
+    scanf("%d%d%d%d%d%d", &T, &M, &N, &V, &G, &K);
 
     A = A_VALUE;
     B = B_VALUE;
@@ -31,9 +31,6 @@ int main()
     // 打印 A_VALUE 和 B_VALUE 来检查它们是否正确传递
     // std::cerr << "A_VALUE: " << A_VALUE << std::endl;
     // std::cerr << "B_VALUE: " << B_VALUE << std::endl;
-
-    double A = A_VALUE;
-    double B = B_VALUE;
 
     // std::cerr << "A=" << A << " B=" << B << std::endl;
 

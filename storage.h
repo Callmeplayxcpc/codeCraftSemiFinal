@@ -67,16 +67,16 @@ extern int disk[MAX_DISK_NUM][MAX_DISK_SIZE];
 //**其中存的值是第i块硬盘的第j个单元所存的块是这个块所属对象的第几个块
 extern int disk_uid[MAX_DISK_NUM][MAX_DISK_SIZE];
 
-set<int> disk_vector[20];  //**容器，存储每个硬盘的所有待读取单元
-int disk_size[20][20];     //**存储磁盘的被占用单元数，因为写入策略是优先挑空闲空间大的磁盘 第一维是磁盘编号，第二维是标签编号 0表示现在占用数
+extern set<int> disk_vector[20];  //**容器，存储每个硬盘的所有待读取单元
+extern int disk_size[20][20];     //**存储磁盘的被占用单元数，因为写入策略是优先挑空闲空间大的磁盘 第一维是磁盘编号，第二维是标签编号 0表示现在占用数
 
-int tag_weights[MAX_LABEL];
-int total_tag_weights;
+extern int tag_weights[MAX_LABEL];
+extern int total_tag_weights;
 // 利用tag设置起点，根据奇偶指定方向
 
-int timestamp;
+extern int timestamp;
 
-int tag_num[MAX_LABEL];
-int total_object_num;
+extern int tag_num[MAX_LABEL];
+extern int total_object_num;
 
 #endif  // STORAGE_H
