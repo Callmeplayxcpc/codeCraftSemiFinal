@@ -5,8 +5,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <vector>
 #include <cstring>
+#include <vector>
 
 #include "storage.h"
 using namespace std;
@@ -14,7 +14,7 @@ using namespace std;
 array<int, 3> select_disk1(int id)
 {
     // 为每个副本处理写入
-    vector<array<int, 2>> vec_disk_size;  //**暂时的，用于找到占用单元最少的磁盘
+    vector<array<int, 2>> vec_disk_size;  //**暂时的，按被占用单元数排序，用于找到占用单元最少的磁盘
     for (int j = 1; j <= N; j++)
     {
         vec_disk_size.push_back({disk_size[j][0], j});
@@ -26,7 +26,7 @@ array<int, 3> select_disk1(int id)
 array<int, 3> select_disk2(int id)
 {
     // 为每个副本处理写入
-    vector<array<int, 2>> vec_disk_size;  //**暂时的，用于找到占用单元最少的磁盘
+    vector<array<int, 2>> vec_disk_size;  //**暂时的，用于找到id标签占用单元多的磁盘，尽量把id相同的放在一个磁盘
     for (int j = 1; j <= N; j++)
     {
         vec_disk_size.push_back({disk_size[j][object[id].tag], j});
@@ -171,9 +171,9 @@ void write_single_rep4(int disk_id, int id, int rep_id)  // 根据每个时间�
 void write_single_rep6(int disk_id, int id, int rep_id)  // 在write single rep2基础上，将对象拆成 size/2块大小为2的，和size%2块大小为1的，分别从该标签磁盘空间的两端开始放
 {
     int siz = object[id].size;
-    int start = ceil((long double)tag_weights[object[id].tag - 1] * V / total_tag_weights);
+    int start = ceil((long double)tag_weights[object[id].tag - 1] * V / total_tag_weights);//使用tag_weights作为分配空间的标准
     int current_write_point = 0;
-    if (disk_id & 1)
+    if (disk_id & 1) //一半磁盘顺序着放，一半磁盘逆序着放
     {
         for (int i = start; i <= V + start - 1; i++)
         {
@@ -328,7 +328,7 @@ void write_action()
 
         // 输出写入结果：先输出对象编号
         printf("%d\n", id);
-        // 对于每个副本，输出硬盘编号和写入的存储单元位置
+        // 对于每个副本，输出硬盘编号和写入的存储单元位置，下面的输出没有必要修改
         for (int j = 1; j <= REP_NUM; j++)
         {
             printf("%d ", object[id].replica[j]);
