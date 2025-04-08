@@ -4,8 +4,8 @@
 #include <array>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <cstring>
+#include <iostream>
 #include <vector>
 
 #include "storage.h"
@@ -171,9 +171,9 @@ void write_single_rep4(int disk_id, int id, int rep_id)  // 根据每个时间�
 void write_single_rep6(int disk_id, int id, int rep_id)  // 在write single rep2基础上，将对象拆成 size/2块大小为2的，和size%2块大小为1的，分别从该标签磁盘空间的两端开始放
 {
     int siz = object[id].size;
-    int start = ceil((long double)tag_weights[object[id].tag - 1] * V / total_tag_weights);//使用tag_weights作为分配空间的标准
+    int start = ceil((long double)tag_weights[object[id].tag - 1] * V / total_tag_weights);  // 使用tag_weights作为分配空间的标准
     int current_write_point = 0;
-    if (disk_id & 1) //一半磁盘顺序着放，一半磁盘逆序着放
+    if (disk_id & 1)  // 一半磁盘顺序着放，一半磁盘逆序着放
     {
         for (int i = start; i <= V + start - 1; i++)
         {

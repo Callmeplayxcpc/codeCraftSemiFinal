@@ -116,8 +116,8 @@ def simulated_annealing(root_dir):
     base_step_B = 2.7    # 对 B，允许扰动范围 ±2.7（10% 的 [3,30] 区间宽度 27）
 
     # 初始参数：A 取 0.5；B 取 [3,30] 的中值，即 (3+30)/2 = 16.5  可以人为调控为已知比较优的A B增加搜索效率
-    A_current = 0.891308
-    B_current = 12.925738
+    A_current = 0.912225
+    B_current = 14.018311
     score_current = run_test(A_current, B_current, root_dir, build_dir)
     if score_current is None:
         err_msg = "初始测试运行失败。"

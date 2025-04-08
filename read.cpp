@@ -18,7 +18,9 @@ int ptr[2][20], last_time[2][20];  // 复赛 有两根针 第一维表示第几�
 
 void timeOutRequest(vector<int> &busyId)
 {
-    for (int request_id : out_time_request[timestamp % EXTRA_TIME])  // 获取哪些请求超时
+    int i = 0;
+    int executeTime = (timestamp + i) % EXTRA_TIME;
+    for (int request_id : out_time_request[executeTime])  // 获取哪些请求超时
     {
         if (!request[request_id].is_done && !object[request[request_id].object_id].is_delete)  // 如果这个请求还没完成
         {
@@ -41,7 +43,7 @@ void timeOutRequest(vector<int> &busyId)
             }
         }
     }
-    vector<int>().swap(out_time_request[timestamp % EXTRA_TIME]);
+    vector<int>().swap(out_time_request[executeTime]);
 }
 
 int cal_min_dist(int ptr[], int disk_id, int to)
@@ -131,9 +133,22 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选�
 {
     string res;  //**该磁盘在该时间片内的操作
     //**处理jump-----------------------------------------------------
+    static constexpr int read_time[8] = {64, 52, 42, 34, 28, 23, 19, 16};  // 已读i次后下次读所需时间
     if (!disk_vector[diskId].size())
     {
-        cout << "#\n";
+        // cout << "#\n";
+        // 原计划是什么都不做 但是显然是一直read比较好
+        string res;
+        for (int i = 1; i <= 8; i++)
+        {
+            if (last_time[i] == 7) break;
+            if (read_time[last_time[i]] < G) break;
+            G -= read_time[last_time[i]];
+            last_time[i] = min(7, last_time[i] + 1);
+            res += 'r';
+        }
+        res += '#';
+        printf("%s\n", res.c_str());
         return;
     }
 
@@ -145,12 +160,11 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选�
         res += "j " + to_string(to);
         ptr[diskId] = to - 1;
         last_time[diskId] = 0;
-        cout << res << '\n';
+        printf("%s\n", res.c_str());
         return;
     }
     //**-------------------------------------------------------------
-    static constexpr int read_time[8] = {64, 52, 42, 34, 28, 23, 19, 16};  // 已读i次后下次读所需时间
-    static pair<int, string> pass_read_dp[70][10];                         //**当前时间片内已读取j个待读单元，已经连续读了k次，此时{剩余的最大令牌数，操作序列} 用作DP
+    static pair<int, string> pass_read_dp[70][10];  //**当前时间片内已读取j个待读单元，已经连续读了k次，此时{剩余的最大令牌数，操作序列} 用作DP
 
     for (int j = 0; j < 8; j++) pass_read_dp[0][j] = pair<int, string>(0, "");
 
@@ -243,9 +257,8 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选�
         }
     }
     if (res[0] != 'j') res += "#";
-    cout << res << '\n';
+    printf("%s\n", res.c_str());
 }
-
 
 void read_action()
 {
@@ -257,67 +270,66 @@ void read_action()
     vector<int> finish;  // 此次完成的请求
     for (int i = 1; i <= N; i++)
     {
-        auto checkIfJump=[&](const int a,const int b) //一个指针在a位置,另一个指针在b位置
+        auto checkIfJump = [&](const int a, const int b)  // 一个指针在a位置,另一个指针在b位置
         {
             int distance = abs(b - a);
-            return distance * B < V;//参数B 代表距离多近就要跳了 参数范围[2,50]
+            return distance * B < V;  // 参数B 代表距离多近就要跳了 参数范围[2,50]
         };
-        auto jumpAction=[&](int &x,const int another,int &lastTime)->void //要改变的是x x要跳到another的对应位置
+        auto jumpAction = [&](int &x, const int another, int &lastTime) -> void  // 要改变的是x x要跳到another的对应位置
         {
-            int target=(another+V/2)%V;
-            x=target;
-            lastTime=0;
-            string res="j "+to_string(target+1);
-            cout<<res<<'\n';
-        };  
-        auto jumpToUnit=[&](int disk_id,int &x,const int another,int &lastTime)->void //要改变的是x x要跳到another的对应位置
+            int target = (another + V / 2) % V;
+            x = target;
+            lastTime = 0;
+            string res = "j " + to_string(target + 1);
+            printf("%s\n", res.c_str());
+        };
+        auto jumpToUnit = [&](int disk_id, int &x, const int another, int &lastTime) -> void  // 要改变的是x x要跳到another的对应位置
         {
             int target;
-            if (disk_vector[disk_id].size()<2)  target=(another+V/2)%V;
-            else 
+            if (disk_vector[disk_id].size() < 2)
+                target = (another + V / 2) % V;
+            else
             {
-                auto it=disk_vector[disk_id].lower_bound(another);
-                int times=disk_vector[disk_id].size()/2;
+                auto it = disk_vector[disk_id].lower_bound(another);
+                int times = disk_vector[disk_id].size() / 2;
                 while (times--)
                 {
-                    if (it==disk_vector[disk_id].end()) it=disk_vector[disk_id].begin();
-                    else it++;
+                    if (it == disk_vector[disk_id].end())
+                        it = disk_vector[disk_id].begin();
+                    else
+                        it++;
                 }
-                if (it==disk_vector[disk_id].end()) it=disk_vector[disk_id].begin();
-                target=*it;
+                if (it == disk_vector[disk_id].end()) it = disk_vector[disk_id].begin();
+                target = *it;
                 target--;
             }
-            
-
-            x=target;
-            lastTime=0;
-            string res="j "+to_string(target+1);
-            cout<<res<<'\n';
-        };  
-        if (!disk_vector[i].size()) 
+            x = target;
+            lastTime = 0;
+            string res = "j " + to_string(target + 1);
+            printf("%s\n", res.c_str());
+        };
+        if (!disk_vector[i].size())
         {
-            jumpToUnit(i,ptr[0][i], ptr[1][i],last_time[0][i]);
-            read(i,ptr[1],last_time[1],finish);
+            jumpToUnit(i, ptr[0][i], ptr[1][i], last_time[0][i]);
+            read(i, ptr[1], last_time[1], finish);
         }
-        else if (checkIfJump(ptr[0][i], ptr[1][i])&&disk_vector[i].size()>1)
+        else if (checkIfJump(ptr[0][i], ptr[1][i]) && disk_vector[i].size() > 1)
         {
-            jumpToUnit(i,ptr[0][i], ptr[1][i],last_time[0][i]);
-            read(i,ptr[1],last_time[1],finish);
+            jumpToUnit(i, ptr[0][i], ptr[1][i], last_time[0][i]);
+            read(i, ptr[1], last_time[1], finish);
         }
         else
         {
             read(i, ptr[0], last_time[0], finish);
             read(i, ptr[1], last_time[1], finish);
         }
-
-        // read(i, ptr[0], last_time[0], finish);
-        // read(i, ptr[1], last_time[1], finish);
     }
-    cout << finish.size() << '\n';
-    for (int v : finish) cout << v << '\n';
 
-    cout << busyId.size() << '\n';
-    for (int v : busyId) cout << v << '\n';  // 输出超时请求
+    printf("%d\n", (int)finish.size());
+    for (int v : finish) printf("%d\n", v);  // 输出完成请求
 
-    fflush(stdout);  // 这里上面的IO都是cout，可以最后进行优化
+    printf("%d\n", (int)busyId.size());
+    for (int v : busyId) printf("%d\n", v);  // 输出超时请求
+
+    fflush(stdout);
 }

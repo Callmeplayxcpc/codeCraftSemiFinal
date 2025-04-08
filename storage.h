@@ -61,6 +61,7 @@ extern Object object[MAX_OBJECT_NUM];
 extern int T, M, N, V, G, K;
 
 extern double A, B;  // 调参
+extern int C;
 
 extern int disk[MAX_DISK_NUM][MAX_DISK_SIZE];
 //**下标意义与disk[][]完全一样，完全可以与disk合并为array<int,2>数组，
