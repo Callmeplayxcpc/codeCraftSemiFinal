@@ -270,9 +270,38 @@ void read_action()
             string res="j "+to_string(target+1);
             cout<<res<<'\n';
         };  
-        if (checkIfJump(ptr[0][i], ptr[1][i]))
+        auto jumpToUnit=[&](int disk_id,int &x,const int another,int &lastTime)->void //要改变的是x x要跳到another的对应位置
         {
-            jumpAction(ptr[0][i], ptr[1][i],last_time[0][i]);
+            int target;
+            if (disk_vector[disk_id].size()<2)  target=(another+V/2)%V;
+            else 
+            {
+                auto it=disk_vector[disk_id].lower_bound(another);
+                int times=disk_vector[disk_id].size()/2;
+                while (times--)
+                {
+                    if (it==disk_vector[disk_id].end()) it=disk_vector[disk_id].begin();
+                    else it++;
+                }
+                if (it==disk_vector[disk_id].end()) it=disk_vector[disk_id].begin();
+                target=*it;
+                target--;
+            }
+            
+
+            x=target;
+            lastTime=0;
+            string res="j "+to_string(target+1);
+            cout<<res<<'\n';
+        };  
+        if (!disk_vector[i].size()) 
+        {
+            jumpToUnit(i,ptr[0][i], ptr[1][i],last_time[0][i]);
+            read(i,ptr[1],last_time[1],finish);
+        }
+        else if (checkIfJump(ptr[0][i], ptr[1][i])&&disk_vector[i].size()>1)
+        {
+            jumpToUnit(i,ptr[0][i], ptr[1][i],last_time[0][i]);
             read(i,ptr[1],last_time[1],finish);
         }
         else

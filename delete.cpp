@@ -5,7 +5,9 @@
 #include <set>
 using namespace std;
 void do_object_delete(const int *object_unit, int *disk_unit, int size)
-{  //
+{   //object_unit[i]表示某个对象在某个磁盘中，第i块的存在哪一个单元
+    //disk_unit[i]表示某个磁盘的第i个单元存的对象序号值
+    //size表示该对象块数量
     for (int i = 1; i <= size; i++)
     {
         disk_unit[object_unit[i]] = 0;
