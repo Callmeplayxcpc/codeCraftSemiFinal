@@ -1,5 +1,11 @@
 ## HuaweiCodeCraft
 
+## simulated_annealing.py使用说明
+
+python3 simulated_annealing.py 即可运行
+终端会输出迭代过程
+
+
 ### 让gpt喂了一些比较关键的思路 可以参照一下
 
 由于github文件限制 data文件夹下没有放大样例 可以自己放+测试
