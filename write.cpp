@@ -51,6 +51,17 @@ array<int, 3> select_disk2(int id)
     return res;
 }
 
+//用于把某个物体的某个块放入磁盘的某个位置，目前只在write_single_rep7中使用
+//没有在这里改和disk_size有关的
+void insert_object(int obj_id, int disk_id, int pos, int rep_id, int blo_id)
+{
+    disk[disk_id][pos] = obj_id;
+    object[obj_id].unit[rep_id][blo_id] = pos;
+    disk_uid[disk_id][pos] = blo_id;
+    tag_pos[disk_id][object[obj_id].tag].insert(pos);  // 统计每个标签的在磁盘上的位置
+    disk_empty[disk_id].erase(pos);  // 删除空闲单元
+}
+
 void write_single_rep2(int disk_id, int id, int rep_id)  // 根据pre input的读取数量分布给每个tag分配对应大小的磁盘空间
 {
     int siz = object[id].size;
@@ -244,9 +255,7 @@ void write_single_rep7(int disk_id, int id, int rep_id)  // 在write single rep2
                 for (;; i++)
                 {
                     int pos = i % V + 1;
-                    disk[disk_id][pos] = id;
-                    object[id].unit[rep_id][++current_write_point] = pos;
-                    disk_uid[disk_id][pos] = current_write_point;
+                    insert_object(id, disk_id, pos, rep_id, ++current_write_point);
                     if (current_write_point == siz) break;
                 }
                 return;
@@ -257,9 +266,7 @@ void write_single_rep7(int disk_id, int id, int rep_id)  // 在write single rep2
             int pos = i % V + 1;
             if (disk[disk_id][pos] == 0)
             {
-                disk[disk_id][pos] = id;
-                object[id].unit[rep_id][++current_write_point] = pos;
-                disk_uid[disk_id][pos] = current_write_point;
+                insert_object(id, disk_id, pos, rep_id, ++current_write_point);
                 if (current_write_point == siz) break;
             }
         }
@@ -279,9 +286,7 @@ void write_single_rep7(int disk_id, int id, int rep_id)  // 在write single rep2
                 for (;; --i)
                 {
                     int pos = i % V + 1;
-                    disk[disk_id][pos] = id;
-                    object[id].unit[rep_id][++current_write_point] = pos;
-                    disk_uid[disk_id][pos] = current_write_point;
+                    insert_object(id, disk_id, pos, rep_id, ++current_write_point);
                     if (current_write_point == siz) break;
                 }
                 return;
@@ -292,9 +297,7 @@ void write_single_rep7(int disk_id, int id, int rep_id)  // 在write single rep2
             int pos = i % V + 1;
             if (disk[disk_id][pos] == 0)
             {
-                disk[disk_id][pos] = id;
-                object[id].unit[rep_id][++current_write_point] = pos;
-                disk_uid[disk_id][pos] = current_write_point;
+                insert_object(id, disk_id, pos, rep_id, ++current_write_point);
                 if (current_write_point == siz) break;
             }
         }

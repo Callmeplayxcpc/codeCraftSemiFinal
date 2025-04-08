@@ -15,6 +15,23 @@ int read_cnt[20];
 #define B_VALUE 0
 #endif
 
+int read_tot;
+
+void Init(){
+    for (int i = 1; i <= M; ++i)
+    {
+        tag_weights[i] = ceil((long double)read_cnt[i] / read_tot * 1e6);
+        total_tag_weights += tag_weights[i];
+        tag_weights[i] += tag_weights[i - 1];
+    }
+    for (int i=1;i<=N;++i){
+        disk_empty[i].clear();
+        for (int j=1;j<=V;++j){
+            disk_empty[i].insert(j);
+        }
+    }
+}
+
 int main()
 {
     // T: 时间片数 1 ≤ 𝑇 ≤ 86400
@@ -50,7 +67,6 @@ int main()
         }
     }
     // 读取写入数据
-    int read_tot = 0;
     for (int i = 1; i <= M; i++)
     {
         for (int j = 1; j <= (T - 1) / FRE_PER_SLICING + 1; j++)
@@ -61,12 +77,10 @@ int main()
             read_tot += t;
         }
     }
-    for (int i = 1; i <= M; ++i)
-    {
-        tag_weights[i] = ceil((long double)read_cnt[i] / read_tot * 1e6);
-        total_tag_weights += tag_weights[i];
-        tag_weights[i] += tag_weights[i - 1];
-    }
+
+    //初始化
+    Init();
+
     // 输出预处理完成标志
     printf("OK\n");
     fflush(stdout);

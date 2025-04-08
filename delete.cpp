@@ -4,13 +4,14 @@
 #include <cstdlib>
 #include <set>
 using namespace std;
-void do_object_delete(const int *object_unit, int *disk_unit, int size)
+void do_object_delete(const int *object_unit, int *disk_unit, set<int>& emp, int size)
 {  // object_unit[i]表示某个对象在某个磁盘中，第i块的存在哪一个单元
     // disk_unit[i]表示某个磁盘的第i个单元存的对象序号值
     // size表示该对象块数量
     for (int i = 1; i <= size; i++)
     {
         disk_unit[object_unit[i]] = 0;
+        emp.insert(object_unit[i]);  //**把空闲单元放入空闲单元集合
     }
 }
 
@@ -61,10 +62,12 @@ void delete_action()
         // 对于该对象的每个副本，清除对应硬盘中的数据块
         for (int j = 1; j <= REP_NUM; j++)
         {
-            do_object_delete(object[id].unit[j], disk[object[id].replica[j]], object[id].size);
+            do_object_delete(object[id].unit[j], disk[object[id].replica[j]], disk_empty[object[id].replica[j]], object[id].size);
             for (int k = 1; k <= object[id].size; k++)
             {  //**删除对象时候顺便把磁盘中相关的待读取单元都删了
-                if (disk_vector[object[id].replica[j]].count(disk[object[id].replica[j]][k])) disk_vector[object[id].replica[j]].erase(disk[object[id].replica[j]][k]);
+                disk_vector[object[id].replica[j]].erase(object[id].unit[j][k]);
+                //删除tag_pos中该对象的块
+                tag_pos[object[id].replica[j]][object[id].tag].erase(object[id].unit[j][k]);
             }
             disk_size[object[id].replica[j]][0] -= object[id].size;  //**更新占用单元数
             disk_size[object[id].replica[j]][object[id].tag] -= object[id].size;
