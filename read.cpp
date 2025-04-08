@@ -20,9 +20,9 @@ void timeOutRequest(vector<int> &busyId)
 {
     for (int request_id : out_time_request[timestamp % EXTRA_TIME])  // 获取哪些请求超时
     {
-        if (!request[request_id].is_done&&!object[request[request_id].object_id].is_delete)  // 如果这个请求还没完成
+        if (!request[request_id].is_done && !object[request[request_id].object_id].is_delete)  // 如果这个请求还没完成
         {
-            busyId.push_back(request_id);  // 记录超时请求
+            busyId.push_back(request_id);        // 记录超时请求
             request[request_id].is_done = true;  // 标记请求完成
         }
         int object_id = request[request_id].object_id;  // 获取对象id
@@ -55,8 +55,10 @@ int cal_min_dist(int ptr[], int disk_id, int to)
     {
         int tmp;
         auto it = disk_vector[disk_id].upper_bound(to);  // 求to在环上的前驱
-        if (it == disk_vector[disk_id].begin()) tmp = to - *prev(disk_vector[disk_id].end());
-        else tmp = to - *prev(it);
+        if (it == disk_vector[disk_id].begin())
+            tmp = to - *prev(disk_vector[disk_id].end());
+        else
+            tmp = to - *prev(it);
         if (tmp < 0) tmp += V;
         res = min(res, tmp);
     }
@@ -67,8 +69,10 @@ int cal_to_pos(int disk_id, int pos)
 {
     //**计算第disk_id个磁盘从第pos个单元出发下一个待读取单元在哪
     auto it = disk_vector[disk_id].lower_bound(pos);
-    if (it == disk_vector[disk_id].end()) return *disk_vector[disk_id].begin();
-    else return *it;
+    if (it == disk_vector[disk_id].end())
+        return *disk_vector[disk_id].begin();
+    else
+        return *it;
 }
 
 int cal_min_near_dist(int disk_id, int pos)
@@ -242,23 +246,48 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选�
     cout << res << '\n';
 }
 
+
 void read_action()
 {
     vector<int> busyId;
-    timeOutRequest(busyId);// 超时请求
+    timeOutRequest(busyId);  // 超时请求
 
-    readRequest();// 读取请求
+    readRequest();  // 读取请求
 
     vector<int> finish;  // 此次完成的请求
     for (int i = 1; i <= N; i++)
     {
-        read(i, ptr[0], last_time[0], finish);
-        read(i, ptr[1], last_time[1], finish);
+        auto checkIfJump=[&](const int a,const int b) //一个指针在a位置,另一个指针在b位置
+        {
+            int distance = abs(b - a);
+            return distance * 10.5 < V;
+        };
+        auto jumpAction=[&](int &x,const int another,int &lastTime)->void //要改变的是x x要跳到another的对应位置
+        {
+            int target=(another+V/2)%V;
+            x=target;
+            lastTime=0;
+            string res="j "+to_string(target+1);
+            cout<<res<<'\n';
+        };  
+        if (checkIfJump(ptr[0][i], ptr[1][i]))
+        {
+            jumpAction(ptr[0][i], ptr[1][i],last_time[0][i]);
+            read(i,ptr[1],last_time[1],finish);
+        }
+        else
+        {
+            read(i, ptr[0], last_time[0], finish);
+            read(i, ptr[1], last_time[1], finish);
+        }
+
+        // read(i, ptr[0], last_time[0], finish);
+        // read(i, ptr[1], last_time[1], finish);
     }
     cout << finish.size() << '\n';
     for (int v : finish) cout << v << '\n';
 
-    cout<<busyId.size()<<'\n';
+    cout << busyId.size() << '\n';
     for (int v : busyId) cout << v << '\n';  // 输出超时请求
 
     fflush(stdout);  // 这里上面的IO都是cout，可以最后进行优化

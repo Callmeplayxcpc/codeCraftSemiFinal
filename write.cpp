@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <cstring>
 
 #include "storage.h"
 using namespace std;
