@@ -12,21 +12,17 @@ cd build
 
 # A 的循环：0.0 到 1.0，步长 0.01
 for A in $(seq 0 0.04 1 | xargs printf "%.2f\n"); do
-    # 计算 B=1-A，并保留两位小数
-    B=$(printf "%.2f" $(echo "1.0 - $A" | bc))
 
     {
-        echo "Building with A=$A, B=$B"
-        
         # 清理构建缓存
         rm -rf CMakeCache.txt CMakeFiles
 
         # 配置和构建
-        cmake -DA_VALUE="$A" -DB_VALUE="$B" ..
+        cmake -DA_VALUE="$A" ..
         cmake --build .
 
         # 运行测试
-        echo "Running test with A=$A and B=$B"
+        echo "Running test with A=$A"
         cd ..
         python3 ./run.py ./interactor ./data/sample_practice.in ./code_craft
         cd build

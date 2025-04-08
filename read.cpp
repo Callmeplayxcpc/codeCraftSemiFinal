@@ -86,7 +86,7 @@ int cal_min_near_dist(int disk_id, int pos)
 
 int cal_weight(int disk_id, int pos)  // test
 {
-    static array<long double, 2> weight_to_choose_disk = {A, B};  // 前者越大则距离更重要，后者越大则任务数更重要 关注A的值 B的值在下面算 保持A+B=1
+    static array<long double, 2> weight_to_choose_disk = {A, 0};  // 前者越大则距离更重要，后者越大则任务数更重要 关注A的值 另一个值在下面算 保持相加为1 参数A 范围[0,1]
     weight_to_choose_disk[1] = 1 - weight_to_choose_disk[0];
     return -cal_min_near_dist(disk_id, pos) * weight_to_choose_disk[0] - disk_vector[disk_id].size() * weight_to_choose_disk[1];
 };
@@ -260,7 +260,7 @@ void read_action()
         auto checkIfJump=[&](const int a,const int b) //一个指针在a位置,另一个指针在b位置
         {
             int distance = abs(b - a);
-            return distance * 10.5 < V;
+            return distance * B < V;//参数B 代表距离多近就要跳了 参数范围[2,50]
         };
         auto jumpAction=[&](int &x,const int another,int &lastTime)->void //要改变的是x x要跳到another的对应位置
         {
