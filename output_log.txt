@@ -1,0 +1,82 @@
+起始参数: A = 0.648277, B = 14.597042, Score = 17959891.4274
+迭代   1 候选解: A_candidate = 0.745778, B_candidate = 13.974946, score_candidate = 18039254.7599
+迭代   1: 直接接受候选解。
+迭代   1: 当前解: A_current = 0.745778, B_current = 13.974946, score_current = 18039254.7599, 温度 T = 380000.000000
+迭代   2 候选解: A_candidate = 0.761249, B_candidate = 12.894642, score_candidate = 18422956.6224
+迭代   2: 直接接受候选解。
+迭代   2: 当前解: A_current = 0.761249, B_current = 12.894642, score_current = 18422956.6224, 温度 T = 361000.000000
+迭代   3 候选解: A_candidate = 0.832943, B_candidate = 14.198850, score_candidate = 18525251.9649
+迭代   3: 直接接受候选解。
+迭代   3: 当前解: A_current = 0.832943, B_current = 14.198850, score_current = 18525251.9649, 温度 T = 342950.000000
+迭代   4 候选解: A_candidate = 0.881179, B_candidate = 12.621351, score_candidate = 18408508.6074
+迭代   4: 以概率接受候选解 (p = 0.711479, rand = 0.186348)
+迭代   4: 当前解: A_current = 0.881179, B_current = 12.621351, score_current = 18408508.6074, 温度 T = 325802.500000
+迭代   5 候选解: A_candidate = 0.863596, B_candidate = 13.306497, score_candidate = 18507856.0574
+迭代   5: 直接接受候选解。
+迭代   5: 当前解: A_current = 0.863596, B_current = 13.306497, score_current = 18507856.0574, 温度 T = 309512.375000
+迭代   6 候选解: A_candidate = 0.921361, B_candidate = 11.453378, score_candidate = 18503016.5199
+迭代   6: 以概率接受候选解 (p = 0.984486, rand = 0.613063)
+迭代   6: 当前解: A_current = 0.921361, B_current = 11.453378, score_current = 18503016.5199, 温度 T = 294036.756250
+迭代   7 候选解: A_candidate = 0.983168, B_candidate = 11.573320, score_candidate = 16571120.4099
+迭代   7: 拒绝候选解 (p = 0.001401, rand = 0.723706)
+迭代   7: 当前解: A_current = 0.921361, B_current = 11.453378, score_current = 18503016.5199, 温度 T = 279334.918437
+迭代   8 候选解: A_candidate = 0.862534, B_candidate = 10.723411, score_candidate = 18391337.8649
+迭代   8: 以概率接受候选解 (p = 0.670453, rand = 0.511069)
+迭代   8: 当前解: A_current = 0.862534, B_current = 10.723411, score_current = 18391337.8649, 温度 T = 265368.172516
+迭代   9 候选解: A_candidate = 0.835686, B_candidate = 9.314279, score_candidate = 18257782.2974
+迭代   9: 拒绝候选解 (p = 0.604542, rand = 0.752481)
+迭代   9: 当前解: A_current = 0.862534, B_current = 10.723411, score_current = 18391337.8649, 温度 T = 252099.763890
+迭代  10 候选解: A_candidate = 0.803294, B_candidate = 9.388172, score_candidate = 18300777.7574
+迭代  10: 拒绝候选解 (p = 0.698218, rand = 0.942946)
+迭代  10: 当前解: A_current = 0.862534, B_current = 10.723411, score_current = 18391337.8649, 温度 T = 239494.775695
+迭代  11 候选解: A_candidate = 0.804453, B_candidate = 11.168732, score_candidate = 18505105.9499
+迭代  11: 直接接受候选解。
+迭代  11: 当前解: A_current = 0.804453, B_current = 11.168732, score_current = 18505105.9499, 温度 T = 227520.036911
+迭代  12 候选解: A_candidate = 0.754764, B_candidate = 11.513220, score_candidate = 18489995.5899
+迭代  12: 以概率接受候选解 (p = 0.935744, rand = 0.319890)
+迭代  12: 当前解: A_current = 0.754764, B_current = 11.513220, score_current = 18489995.5899, 温度 T = 216144.035065
+迭代  13 候选解: A_candidate = 0.702890, B_candidate = 10.091977, score_candidate = 18005263.8949
+迭代  13: 拒绝候选解 (p = 0.106179, rand = 0.798032)
+迭代  13: 当前解: A_current = 0.754764, B_current = 11.513220, score_current = 18489995.5899, 温度 T = 205336.833312
+迭代  14 候选解: A_candidate = 0.727574, B_candidate = 12.468425, score_candidate = 17968527.5049
+迭代  14: 拒绝候选解 (p = 0.078900, rand = 0.264212)
+迭代  14: 当前解: A_current = 0.754764, B_current = 11.513220, score_current = 18489995.5899, 温度 T = 195069.991646
+迭代  15 候选解: A_candidate = 0.781073, B_candidate = 10.796398, score_candidate = 18322514.1124
+迭代  15: 以概率接受候选解 (p = 0.423767, rand = 0.163917)
+迭代  15: 当前解: A_current = 0.781073, B_current = 10.796398, score_current = 18322514.1124, 温度 T = 185316.492064
+迭代  16 候选解: A_candidate = 0.765523, B_candidate = 11.353140, score_candidate = 18425638.5249
+迭代  16: 直接接受候选解。
+迭代  16: 当前解: A_current = 0.765523, B_current = 11.353140, score_current = 18425638.5249, 温度 T = 176050.667461
+迭代  17 候选解: A_candidate = 0.788692, B_candidate = 12.225901, score_candidate = 18577056.3024
+迭代  17: 直接接受候选解。
+迭代  17: 当前解: A_current = 0.788692, B_current = 12.225901, score_current = 18577056.3024, 温度 T = 167248.134088
+迭代  18 候选解: A_candidate = 0.792180, B_candidate = 12.642477, score_candidate = 19576346.2949
+迭代  18: 直接接受候选解。
+迭代  18: 当前解: A_current = 0.792180, B_current = 12.642477, score_current = 19576346.2949, 温度 T = 158885.727383
+迭代  19 候选解: A_candidate = 0.818085, B_candidate = 13.690267, score_candidate = 19429626.7824
+迭代  19: 以概率接受候选解 (p = 0.397155, rand = 0.338260)
+迭代  19: 当前解: A_current = 0.818085, B_current = 13.690267, score_current = 19429626.7824, 温度 T = 150941.441014
+迭代  20 候选解: A_candidate = 0.842088, B_candidate = 13.555815, score_candidate = 19516157.3599
+迭代  20: 直接接受候选解。
+迭代  20: 当前解: A_current = 0.842088, B_current = 13.555815, score_current = 19516157.3599, 温度 T = 143394.368963
+迭代  21 候选解: A_candidate = 0.855151, B_candidate = 13.379871, score_candidate = 19775799.4424
+迭代  21: 直接接受候选解。
+迭代  21: 当前解: A_current = 0.855151, B_current = 13.379871, score_current = 19775799.4424, 温度 T = 136224.650515
+迭代  22 候选解: A_candidate = 0.876293, B_candidate = 13.439130, score_candidate = 19536211.3749
+迭代  22: 拒绝候选解 (p = 0.172256, rand = 0.581544)
+迭代  22: 当前解: A_current = 0.855151, B_current = 13.379871, score_current = 19775799.4424, 温度 T = 129413.417989
+迭代  23 候选解: A_candidate = 0.864577, B_candidate = 12.635390, score_candidate = 19696289.2299
+迭代  23: 拒绝候选解 (p = 0.540971, rand = 0.771353)
+迭代  23: 当前解: A_current = 0.855151, B_current = 13.379871, score_current = 19775799.4424, 温度 T = 122942.747090
+迭代  24 候选解: A_candidate = 0.862047, B_candidate = 14.131171, score_candidate = 19516937.4899
+迭代  24: 拒绝候选解 (p = 0.121779, rand = 0.309973)
+迭代  24: 当前解: A_current = 0.855151, B_current = 13.379871, score_current = 19775799.4424, 温度 T = 116795.609736
+迭代  25 候选解: A_candidate = 0.878425, B_candidate = 12.691067, score_candidate = 19724243.5399
+迭代  25: 以概率接受候选解 (p = 0.643123, rand = 0.546299)
+迭代  25: 当前解: A_current = 0.878425, B_current = 12.691067, score_current = 19724243.5399, 温度 T = 110955.829249
+迭代  26 候选解: A_candidate = 0.872757, B_candidate = 13.131623, score_candidate = 19561574.6424
+迭代  26: 拒绝候选解 (p = 0.230831, rand = 0.330238)
+迭代  26: 当前解: A_current = 0.878425, B_current = 12.691067, score_current = 19724243.5399, 温度 T = 105408.037786
+迭代  27 候选解: A_candidate = 0.891308, B_candidate = 12.925738, score_candidate = 19812823.5549
+迭代  27: 直接接受候选解。
+迭代  27: 当前解: A_current = 0.891308, B_current = 12.925738, score_current = 19812823.5549, 温度 T = 100137.635897
