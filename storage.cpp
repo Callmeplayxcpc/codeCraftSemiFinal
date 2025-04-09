@@ -11,8 +11,7 @@ int V;  // 硬盘单元数
 int G;  // 时间片内令牌数
 int K;  // 每个硬盘最多交换单元次数
 
-double A, B;
-int C;
+double A, B,C,D;
 
 // double A=A_VALUE, B=B_VALUE; // 调参
 

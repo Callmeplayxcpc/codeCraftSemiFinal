@@ -6,20 +6,26 @@ import re
 import json
 import math
 import random
+import multiprocessing
 
-def run_test(A_value, B_value, root_dir, build_dir):
-    """
-    配置、构建并运行测试程序，返回测试得分（浮点数）。
+# 使用全局字典缓存评估结果
+evaluation_cache = {}  # key: (round(A,5), round(B,5), round(C,5), round(D,5)) , value: score
 
-    步骤：
-      1. 在 build 目录中清除 CMake 缓存文件（CMakeCache.txt 和 CMakeFiles），
-         以确保使用干净的构建环境；
-      2. 调用 cmake 进行配置时传入 A_value 和 B_value（确保 CMakeLists.txt 已处理这两个变量）；
-      3. 执行构建过程；
-      4. 切换到项目根目录运行测试程序 run.py，将测试输出中以 "ok " 开头的 JSON 数据解析，
-         并返回其中的 "score" 作为浮点数得分；
-      5. 如果构建或解析失败，返回 None。
+def run_test(A_value, B_value, C_value, D_value, root_dir, build_dir):
     """
+    优化后的评估函数：
+      - 使用缓存避免重复构建和测试。
+      - 构建时增加并行编译参数以加速进程。
+      - 接受参数 A, B, C 与 D。
+    """
+    global evaluation_cache
+    # 四舍五入后作为缓存键（可调精度）
+    key = (round(A_value, 5), round(B_value, 5), round(C_value, 5), round(D_value, 5))
+    if key in evaluation_cache:
+        print(f"使用缓存结果: A = {A_value:.6f}, B = {B_value:.6f}, C = {C_value:.6f}, D = {D_value:.6f}, Score = {evaluation_cache[key]:.4f}")
+        return evaluation_cache[key]
+
+    # 清除构建缓存
     try:
         subprocess.run(
             ["rm", "-rf", "CMakeCache.txt", "CMakeFiles"],
@@ -32,8 +38,14 @@ def run_test(A_value, B_value, root_dir, build_dir):
         print("清除构建缓存失败：", e, file=sys.stderr)
         return None
 
+    # 配置 cmake，传入参数 A、B、C 和 D
     cmake_config = subprocess.run(
-        ["cmake", "-DA_VALUE={}".format(A_value), "-DB_VALUE={}".format(B_value), ".."],
+        ["cmake",
+         "-DA_VALUE={}".format(A_value),
+         "-DB_VALUE={}".format(B_value),
+         "-DC_VALUE={}".format(C_value),
+         "-DD_VALUE={}".format(D_value),
+         ".."],
         cwd=build_dir,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -43,8 +55,10 @@ def run_test(A_value, B_value, root_dir, build_dir):
         print("CMake 配置失败:", cmake_config.stderr, file=sys.stderr)
         return None
 
+    # 使用并行构建（默认使用 os.cpu_count() 个核心）
+    num_cores = str(os.cpu_count() or 1)
     cmake_build = subprocess.run(
-        ["cmake", "--build", "."],
+        ["cmake", "--build", ".", "--", "-j", num_cores],
         cwd=build_dir,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -54,6 +68,7 @@ def run_test(A_value, B_value, root_dir, build_dir):
         print("构建失败:", cmake_build.stderr, file=sys.stderr)
         return None
 
+    # 运行测试程序
     test_run = subprocess.run(
         ["python3", "./run.py", "./interactor", "./data/sample_practice.in", "./code_craft"],
         cwd=root_dir,
@@ -70,6 +85,7 @@ def run_test(A_value, B_value, root_dir, build_dir):
         try:
             data = json.loads(json_str)
             score = float(data.get("score", 0))
+            evaluation_cache[key] = score  # 缓存结果
             return score
         except Exception as e:
             print("解析 JSON 失败:", e, file=sys.stderr)
@@ -80,129 +96,120 @@ def run_test(A_value, B_value, root_dir, build_dir):
 
 def simulated_annealing(root_dir):
     """
-    使用模拟退火算法寻找最佳参数组合：
-      - 参数 A 的范围为 [0, 1]；
-      - 参数 B 的范围为 [3, 30]（均为浮点数）。
-
-    为保证候选生成更合理，采用固定基础扰动步长再乘以 (T / T_init) 生成候选扰动：
-      - 对 A，基础步长设为 0.1；
-      - 对 B，区间 [3,30] 宽度为 27，10% 为 2.7；
-    即：delta_A = random.uniform(-0.1, 0.1) * (T / T_init)
-         delta_B = random.uniform(-2.7, 2.7) * (T / T_init)
-
-    模拟退火参数：
-      - 初始温度 T_init 设为 400,000
-      - 终止温度 T_min 设为 10,000
-      - 冷却因子为 0.95
-      - 最大迭代次数设为 100
-
-    在每次迭代中记录候选解（A_candidate, B_candidate）、候选得分及接受决策，
-    并写入日志文件 output_log.txt 中，同时在终端输出。
+    优化后的模拟退火：
+      - 冷却因子调为 0.95，延长高温阶段，使搜索更充分；
+      - 增加最大迭代次数；
+      - 在扰动时确保扰动因子不低于下限 min_step_factor。
+      - 新增参数 C 与 D 的优化，参数范围分别为 [100, 10000] 与 [1, 5000]。
     """
-    # 构建目录和日志文件路径
     build_dir = os.path.join(root_dir, "build")
     log_file_path = os.path.join(root_dir, "output_log.txt")
-    log_file = open(log_file_path, "w", encoding="utf-8")
-    
-    # 模拟退火温度参数设定
-    T_init = 400000.0    # 初始温度设为 400,000
-    T = T_init           # 当前温度从初始温度开始
-    T_min = 10000.0      # 当温度降低到 10,000 以下时终止迭代
-    cooling_rate = 0.95  # 每迭代一次温度乘以 0.95
-    max_iter = 100       # 最大迭代次数
+    with open(log_file_path, "w", encoding="utf-8") as log_file:
+        # 模拟退火参数
+        T_init = 400000.0    # 初始温度
+        T = T_init           # 当前温度
+        T_min = 10000.0      # 终止温度
+        cooling_rate = 0.96  # 更缓的冷却
+        max_iter = 200       # 增加迭代次数
 
-    # 固定基础扰动步长，根据参数区间设置
-    base_step_A = 0.1    # 对 A，允许扰动范围 ±0.1
-    base_step_B = 2.7    # 对 B，允许扰动范围 ±2.7（10% 的 [3,30] 区间宽度 27）
+        # A 和 B 的扰动参数
+        base_step_A = 0.1    # 对 A 允许的扰动范围
+        base_step_B = 2.7    # 对 B 允许的扰动范围
+        
+        # 新增参数 C 和 D 的扰动参数（各取范围的 10%）
+        base_step_C = (10000 - 100) * 0.1  # 约 990.0
+        base_step_D = (5000 - 1) * 0.1      # 约 499.9
 
-    # 初始参数：A 取 0.5；B 取 [3,30] 的中值，即 (3+30)/2 = 16.5  可以人为调控为已知比较优的A B增加搜索效率
-    A_current = 0.912225
-    B_current = 14.018311
-    score_current = run_test(A_current, B_current, root_dir, build_dir)
-    if score_current is None:
-        err_msg = "初始测试运行失败。"
-        print(err_msg, file=sys.stderr)
-        log_file.write(err_msg + "\n")
-        log_file.close()
-        sys.exit(1)
+        min_step_factor = 0.2  # 在低温时也保持至少 20% 的基础步长
 
-    # 记录全局最优解，初始解即为全局最优
-    best_A = A_current
-    best_B = B_current
-    best_score = score_current
-    
-    init_msg = "起始参数: A = {:.6f}, B = {:.6f}, Score = {:.4f}\n".format(A_current, B_current, score_current)
-    print(init_msg, end="")
-    log_file.write(init_msg)
+        # 初始参数（可调整为已知较优解加快搜索）
+        A_current = 0.912225
+        B_current = 14.018311
+        C_current = 5050.0   # 可根据实际情况调整初始值
+        D_current = 2500.0   # 可根据实际情况调整初始值
 
-    # 进入迭代
-    for iter in range(max_iter):
-        if T < T_min:
-            break
+        score_current = run_test(A_current, B_current, C_current, D_current, root_dir, build_dir)
+        if score_current is None:
+            err_msg = "初始测试运行失败。"
+            print(err_msg, file=sys.stderr)
+            log_file.write(err_msg + "\n")
+            sys.exit(1)
 
-        # 根据当前温度按 (T / T_init) 调整扰动幅度
-        delta_A = random.uniform(-base_step_A, base_step_A) * (T / T_init)
-        A_candidate = A_current + delta_A
-        A_candidate = max(0.0, min(1.0, A_candidate))  # 确保 A_candidate 在 [0,1]
+        best_A, best_B, best_C, best_D, best_score = A_current, B_current, C_current, D_current, score_current
 
-        delta_B = random.uniform(-base_step_B, base_step_B) * (T / T_init)
-        B_candidate = B_current + delta_B
-        B_candidate = max(3.0, min(30.0, B_candidate))   # 确保 B_candidate 在 [3,30]
+        init_msg = "起始参数: A = {:.6f}, B = {:.6f}, C = {:.6f}, D = {:.6f}, Score = {:.4f}\n".format(
+            A_current, B_current, C_current, D_current, score_current)
+        print(init_msg, end="")
+        log_file.write(init_msg)
 
-        # 评估候选解的得分
-        score_candidate = run_test(A_candidate, B_candidate, root_dir, build_dir)
-        if score_candidate is None:
-            continue
+        for iter in range(max_iter):
+            if T < T_min:
+                break
 
-        # 记录候选解信息到日志和终端
-        candidate_info = ("迭代 {:>3} 候选解: A_candidate = {:.6f}, B_candidate = {:.6f}, "
-                          "score_candidate = {:.4f}\n").format(iter+1, A_candidate, B_candidate, score_candidate)
-        print(candidate_info, end="")
-        log_file.write(candidate_info)
+            # 计算扰动幅度因子，确保不低于最小比例
+            step_factor = max(T / T_init, min_step_factor)
 
-        # 如果候选解比当前解得分更高，则直接接受
-        if score_candidate >= score_current:
-            decision_msg = "迭代 {:>3}: 直接接受候选解。\n".format(iter+1)
-            A_current, B_current, score_current = A_candidate, B_candidate, score_candidate
-            # 更新全局最优解（如果比历史最佳还高）
-            if score_candidate > best_score:
-                best_A, best_B, best_score = A_candidate, B_candidate, score_candidate
-        else:
-            # 如果候选解得分较低，则以一定概率接受
-            # 计算得分差（负数）
-            delta_score = score_candidate - score_current
-            p = math.exp(delta_score / T)
-            rand_val = random.random()
-            if rand_val < p:
-                decision_msg = ("迭代 {:>3}: 以概率接受候选解 (p = {:.6f}, rand = {:.6f})\n"
-                                .format(iter+1, p, rand_val))
-                A_current, B_current, score_current = A_candidate, B_candidate, score_candidate
+            # 生成 A 和 B 的候选解并限幅
+            delta_A = random.uniform(-base_step_A, base_step_A) * step_factor
+            A_candidate = max(0.0, min(1.0, A_current + delta_A))
+
+            delta_B = random.uniform(-base_step_B, base_step_B) * step_factor
+            B_candidate = max(3.0, min(30.0, B_current + delta_B))
+
+            # 生成 C 和 D 的候选解并限幅
+            delta_C = random.uniform(-base_step_C, base_step_C) * step_factor
+            C_candidate = max(100.0, min(10000.0, C_current + delta_C))
+
+            delta_D = random.uniform(-base_step_D, base_step_D) * step_factor
+            D_candidate = max(1.0, min(5000.0, D_current + delta_D))
+
+            # 评估候选解得分
+            score_candidate = run_test(A_candidate, B_candidate, C_candidate, D_candidate, root_dir, build_dir)
+            if score_candidate is None:
+                continue
+
+            candidate_info = ("迭代 {:>3} 候选解: A_candidate = {:.6f}, B_candidate = {:.6f}, "
+                              "C_candidate = {:.6f}, D_candidate = {:.6f}, score_candidate = {:.4f}\n"
+                              ).format(iter+1, A_candidate, B_candidate, C_candidate, D_candidate, score_candidate)
+            print(candidate_info, end="")
+            log_file.write(candidate_info)
+
+            # 判断接受候选解
+            if score_candidate >= score_current:
+                decision_msg = "迭代 {:>3}: 直接接受候选解。\n".format(iter+1)
+                A_current, B_current, C_current, D_current, score_current = A_candidate, B_candidate, C_candidate, D_candidate, score_candidate
+                if score_candidate > best_score:
+                    best_A, best_B, best_C, best_D, best_score = A_candidate, B_candidate, C_candidate, D_candidate, score_candidate
             else:
-                decision_msg = ("迭代 {:>3}: 拒绝候选解 (p = {:.6f}, rand = {:.6f})\n"
-                                .format(iter+1, p, rand_val))
-        print(decision_msg, end="")
-        log_file.write(decision_msg)
+                delta_score = score_candidate - score_current
+                p = math.exp(delta_score / T)
+                rand_val = random.random()
+                if rand_val < p:
+                    decision_msg = ("迭代 {:>3}: 以概率接受候选解 (p = {:.6f}, rand = {:.6f})\n"
+                                    .format(iter+1, p, rand_val))
+                    A_current, B_current, C_current, D_current, score_current = A_candidate, B_candidate, C_candidate, D_candidate, score_candidate
+                else:
+                    decision_msg = ("迭代 {:>3}: 拒绝候选解 (p = {:.6f}, rand = {:.6f})\n"
+                                    .format(iter+1, p, rand_val))
+            print(decision_msg, end="")
+            log_file.write(decision_msg)
 
-        # 冷却降温更新温度
-        T *= cooling_rate
+            # 降温更新
+            T *= cooling_rate
 
-        # 记录当前解状态及温度
-        iteration_msg = ("迭代 {:>3}: 当前解: A_current = {:.6f}, B_current = {:.6f}, "
-                         "score_current = {:.4f}, 温度 T = {:.6f}\n"
-                         .format(iter+1, A_current, B_current, score_current, T))
-        print(iteration_msg, end="")
-        log_file.write(iteration_msg)
+            iteration_msg = ("迭代 {:>3}: 当前解: A_current = {:.6f}, B_current = {:.6f}, "
+                             "C_current = {:.6f}, D_current = {:.6f}, score_current = {:.4f}, 温度 T = {:.6f}\n"
+                             .format(iter+1, A_current, B_current, C_current, D_current, score_current, T))
+            print(iteration_msg, end="")
+            log_file.write(iteration_msg)
 
-    # 记录并输出最终找到的最优结果
-    final_msg = "\n最终最优结果: A = {:.6f}, B = {:.6f}, Score = {:.4f}\n".format(best_A, best_B, best_score)
-    print(final_msg, end="")
-    log_file.write(final_msg)
-    log_file.close()
-    
-    return best_A, best_B, best_score
+        final_msg = "\n最终最优结果: A = {:.6f}, B = {:.6f}, C = {:.6f}, D = {:.6f}, Score = {:.4f}\n".format(
+            best_A, best_B, best_C, best_D, best_score)
+        print(final_msg, end="")
+        log_file.write(final_msg)
+        return best_A, best_B, best_C, best_D, best_score
 
 if __name__ == "__main__":
-    # 假设当前工作目录为项目根目录，且 build 文件夹位于该根目录中，
-    # 日志将保存在 output_log.txt 文件中
+    # 假设当前工作目录为项目根目录，且 build 文件夹位于该根目录中
     root_directory = os.getcwd()
     simulated_annealing(root_directory)

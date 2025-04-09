@@ -9,11 +9,20 @@ option(BUILD_SHARED_LIBS    ""  OFF) # 不要修改
 
 # 设置 A_VALUE 和 B_VALUE 的默认值
 if(NOT DEFINED A_VALUE)
-    set(A_VALUE 0.891308)  # 默认值
+    set(A_VALUE 0.823711)  # 默认值
 endif()
 
 if(NOT DEFINED B_VALUE)
-    set(B_VALUE 12.925738)  # 默认值
+    set(B_VALUE 18.076513)  # 默认值
+endif()
+
+# 设置 C_VALUE 和 D_VALUE 的默认值
+if(NOT DEFINED C_VALUE)
+    set(C_VALUE 1500)  # 默认值
+endif()
+
+if(NOT DEFINED D_VALUE)
+    set(D_VALUE 105)  # 默认值
 endif()
 
 # 输出传入的参数，确保它们正确传递
@@ -26,8 +35,14 @@ aux_source_directory(./ cur_src)  # 不要修改
 # 创建可执行文件
 add_executable(code_craft ${cur_src})  # ！！！不要修改 code_craft 名称，直接影响结果；可以根据语法在 ${cur_src} 后面追加
 
-# 通过 CMake 将 A_VALUE 和 B_VALUE 传递给 C++ 代码
-target_compile_definitions(code_craft PRIVATE A_VALUE=${A_VALUE} B_VALUE=${B_VALUE})
+# 通过 CMake 将 A_VALUE 和 B_VALUE 和 C_VALUE 和 D_VALUE 传递给 C++ 代码
+target_compile_definitions(code_craft PRIVATE 
+    A_VALUE=${A_VALUE} 
+    B_VALUE=${B_VALUE} 
+    C_VALUE=${C_VALUE} 
+    D_VALUE=${D_VALUE}
+)
+
 
 # 添加极致优化选项
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)  # 启用 LTO

@@ -16,34 +16,39 @@ int ptr[2][20], last_time[2][20];  // 复赛 有两根针 第一维表示第几�
 //**ptr代表第i个磁盘的指针在哪个单元，为了方便实现，它的值是0-V-1，实际位置是ptr[i]+1
 //**last_time表示第i个磁盘上个时间片最后一次操作的读取时间是多少，是为了跨时间片维护，如果该操作是移动，那就置为大值
 
+void quitRequest(int request_id, vector<int> &busyId)
+{
+    if (!request[request_id].is_done && !object[request[request_id].object_id].is_delete)  // 如果这个请求还没完成
+    {
+        busyId.push_back(request_id);        // 记录超时请求
+        request[request_id].is_done = true;  // 标记请求完成
+    }
+    int object_id = request[request_id].object_id;  // 获取对象id
+    for (int block_id : request[request_id].rest)   // 获取对象在哪个块
+    {
+        // 删除这个对象在这个块上的请求
+        if (object[object_id].request[block_id].count({request_id, block_id})) object[object_id].request[block_id].erase({request_id, block_id});
+        if (!object[object_id].request[block_id].size())  // 如果这个对象在这个块上已经被完全删除了
+        {
+            for (int copy_id = 1; copy_id <= 3; copy_id++)
+            {
+                int disk_id = object[object_id].replica[copy_id];
+                int unit_id = object[object_id].unit[copy_id][block_id];
+                if (disk_vector[disk_id].count(unit_id)) disk_vector[disk_id].erase(unit_id);
+            }
+        }
+    }
+}
+
 void timeOutRequest(vector<int> &busyId)
 {
     int i = 0;
     int executeTime = (timestamp + i) % EXTRA_TIME;
     for (int request_id : out_time_request[executeTime])  // 获取哪些请求超时
     {
-        if (!request[request_id].is_done && !object[request[request_id].object_id].is_delete)  // 如果这个请求还没完成
-        {
-            busyId.push_back(request_id);        // 记录超时请求
-            request[request_id].is_done = true;  // 标记请求完成
-        }
-        int object_id = request[request_id].object_id;  // 获取对象id
-        for (int block_id : request[request_id].rest)   // 获取对象在哪个块
-        {
-            // 删除这个对象在这个块上的请求
-            if (object[object_id].request[block_id].count({request_id, block_id})) object[object_id].request[block_id].erase({request_id, block_id});
-            if (!object[object_id].request[block_id].size())  // 如果这个对象在这个块上已经被完全删除了
-            {
-                for (int copy_id = 1; copy_id <= 3; copy_id++)
-                {
-                    int disk_id = object[object_id].replica[copy_id];
-                    int unit_id = object[object_id].unit[copy_id][block_id];
-                    if (disk_vector[disk_id].count(unit_id)) disk_vector[disk_id].erase(unit_id);
-                }
-            }
-        }
+        quitRequest(request_id, busyId);
     }
-    vector<int>().swap(out_time_request[executeTime]);
+    vector<int>().swap(out_time_request[executeTime]);  // 清空
 }
 
 int cal_min_dist(int ptr[], int disk_id, int to)
@@ -93,7 +98,7 @@ int cal_weight(int disk_id, int pos)  // test
     return -cal_min_near_dist(disk_id, pos) * weight_to_choose_disk[0] - disk_vector[disk_id].size() * weight_to_choose_disk[1];
 };
 
-void readRequest()
+void readRequest(vector<int> &busyId)
 {
     int n_read;
     int request_id, object_id;
@@ -106,7 +111,7 @@ void readRequest()
         object[object_id].last_request_point = request_id;                   // 更新对象的上一个请求id
         request[request_id].is_done = false;                                 // 标记请求未完成
         out_time_request[timestamp % EXTRA_TIME].push_back(request_id);      // 记录超时请求
-
+        bool ifAbort = false;
         for (int k = 1; k <= object[object_id].size; k++)
         {
             request[request_id].rest.insert(k);
@@ -118,14 +123,27 @@ void readRequest()
                 // mn代表第d个副本对应的磁盘编号，now代表第j个
                 int to1 = object[object_id].unit[d][k], to2 = object[object_id].unit[j][k];
 
-                long double mask1 = cal_weight(mn, to1), mask2 = cal_weight(now, to2);
+                long double mark1 = cal_weight(mn, to1), mark2 = cal_weight(now, to2);
 
-                if (mask1 < mask2) d = j;  //**按最短距离判断磁盘优劣
+                if (mark1 < mark2) d = j;  //**按最短距离判断磁盘优劣
             }
-            int mn = object[object_id].replica[d];
+            int mn = object[object_id].replica[d];                 // 放在哪个磁盘
             disk_vector[mn].insert(object[object_id].unit[d][k]);  // 待处理单元放入磁盘容器
             object[object_id].request[k].insert({request_id, k});  // 这个vec存储该对象的第i个块与哪些请求相关，存的值是request_id
+            auto calDist = [&](int ptr, int pos) { return (pos - ptr - 1 + V) % V; };
+            //cerr<<"C="<<C<<" D="<<D<<"\n";
+            auto checkIfAbort = [&]()
+            {
+                if (disk_vector[mn].size() < 800) return false;  // 如果不繁忙 很有可能能满足 所以不要废弃
+                int pos = object[object_id].unit[d][k];
+                int distance0 = calDist(ptr[0][mn], pos);
+                int distance1 = calDist(ptr[1][mn], pos);
+                if (min(distance0, distance1) > G * 35.2) return true;  // pass也很难pass到
+                return false;
+            };
+            ifAbort |= checkIfAbort();
         }
+        if (ifAbort) quitRequest(request_id, busyId);
     }
 }
 
@@ -265,7 +283,7 @@ void read_action()
     vector<int> busyId;
     timeOutRequest(busyId);  // 超时请求
 
-    readRequest();  // 读取请求
+    readRequest(busyId);  // 读取请求
 
     vector<int> finish;  // 此次完成的请求
     for (int i = 1; i <= N; i++)

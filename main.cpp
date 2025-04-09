@@ -15,18 +15,29 @@ int read_cnt[20];
 #define B_VALUE 0
 #endif
 
+#ifndef C_VALUE
+#define C_VALUE 1200  //** 这里的值要在cmake指定 这里指定没用
+#endif
+
+#ifndef D_VALUE
+#define D_VALUE 105
+#endif
+
 int read_tot;
 
-void Init(){
+void Init()
+{
     for (int i = 1; i <= M; ++i)
     {
         tag_weights[i] = ceil((long double)read_cnt[i] / read_tot * 1e6);
         total_tag_weights += tag_weights[i];
         tag_weights[i] += tag_weights[i - 1];
     }
-    for (int i=1;i<=N;++i){
+    for (int i = 1; i <= N; ++i)
+    {
         disk_empty[i].clear();
-        for (int j=1;j<=V;++j){
+        for (int j = 1; j <= V; ++j)
+        {
             disk_empty[i].insert(j);
         }
     }
@@ -44,6 +55,8 @@ int main()
 
     A = A_VALUE;
     B = B_VALUE;
+    C = C_VALUE;
+    D = D_VALUE;
 
     // 打印 A_VALUE 和 B_VALUE 来检查它们是否正确传递
     // std::cerr << "A_VALUE: " << A_VALUE << std::endl;
@@ -78,7 +91,7 @@ int main()
         }
     }
 
-    //初始化
+    // 初始化
     Init();
 
     // 输出预处理完成标志
