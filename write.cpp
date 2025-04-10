@@ -304,6 +304,81 @@ void write_single_rep7(int disk_id, int id, int rep_id)  // 在write single rep2
     }
 }
 
+void write_single_rep8(int disk_id, int id, int rep_id)  // 在write single rep2基础上，尽量把对象连在一起
+{
+    int siz = object[id].size;
+    
+    int current_write_point = 0;
+    if (object[id].tag & 1)
+    {
+        int start = ceil((long double)tag_weights[object[id].tag - 1] * V / total_tag_weights);
+        for (int i = start; i <= V + start - 1; i++)
+        {
+            int free_units = 0;
+            for (; free_units < siz; free_units++)
+            {
+                if (disk[disk_id][(i + free_units) % V + 1]) break;
+            }
+            if (free_units == siz)
+            {
+                for (;; i++)
+                {
+                    int pos = i % V + 1;
+                    insert_object(id, disk_id, pos, rep_id, ++current_write_point);
+                    if (current_write_point == siz) break;
+                }
+                return;
+            }
+        }
+        for (int i = start; i <= V + start - 1; i++)
+        {
+            int pos = i % V + 1;
+            if (disk[disk_id][pos] == 0)
+            {
+                insert_object(id, disk_id, pos, rep_id, ++current_write_point);
+                if (current_write_point == siz) break;
+            }
+        }
+    }
+    else
+    {
+        int start = ceil((long double)tag_weights[object[id].tag] * V / total_tag_weights);
+        for (int i = V + start - 1; i >= start; --i)
+        {
+            int free_units = 0;
+            for (; free_units < siz; free_units++)
+            {
+                if (disk[disk_id][(i - free_units + V) % V + 1]) break;
+            }
+            if (free_units == siz)
+            {
+                i += V;
+                for (;; --i)
+                {
+                    int pos = i % V + 1;
+                    insert_object(id, disk_id, pos, rep_id, ++current_write_point);
+                    if (current_write_point == siz) break;
+                }
+                return;
+            }
+        }
+        for (int i = V + start - 1; i >= start; --i)
+        {
+            int pos = i % V + 1;
+            if (disk[disk_id][pos] == 0)
+            {
+                insert_object(id, disk_id, pos, rep_id, ++current_write_point);
+                if (current_write_point == siz) break;
+            }
+        }
+    }
+}
+
+
+
+
+
+
 void write_action()
 {
     int n_write;  // 当前时间片写入请求数量

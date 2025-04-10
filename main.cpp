@@ -5,6 +5,15 @@
 #include "actions.h"
 #include "storage.h"
 
+// #include "actions.cpp"
+// #include "storage.cpp"
+// #include "read.cpp"
+// #include "gc.cpp"
+// #include "delete.cpp"
+// #include "clean.cpp"
+// #include "write.cpp"
+// #include "timestamp.cpp"
+
 int read_cnt[20];
 
 #ifndef A_VALUE
@@ -40,6 +49,7 @@ void Init()
         {
             disk_empty[i].insert(j);
         }
+        divide_line[i]=V/2;
     }
 }
 

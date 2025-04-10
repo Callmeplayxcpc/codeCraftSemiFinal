@@ -65,7 +65,8 @@ void delete_action()
             do_object_delete(object[id].unit[j], disk[object[id].replica[j]], disk_empty[object[id].replica[j]], object[id].size);
             for (int k = 1; k <= object[id].size; k++)
             {  //**删除对象时候顺便把磁盘中相关的待读取单元都删了
-                disk_vector[object[id].replica[j]].erase(object[id].unit[j][k]);
+                disk_vector[object[id].replica[j]][0].erase(object[id].unit[j][k]);
+                disk_vector[object[id].replica[j]][1].erase(object[id].unit[j][k]);
                 //删除tag_pos中该对象的块
                 tag_pos[object[id].replica[j]][object[id].tag].erase(object[id].unit[j][k]);
             }

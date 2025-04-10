@@ -34,7 +34,8 @@ void quitRequest(int request_id, vector<int> &busyId)
             {
                 int disk_id = object[object_id].replica[copy_id];
                 int unit_id = object[object_id].unit[copy_id][block_id];
-                if (disk_vector[disk_id].count(unit_id)) disk_vector[disk_id].erase(unit_id);
+                if (disk_vector[disk_id][0].count(unit_id)) disk_vector[disk_id][0].erase(unit_id);
+                if (disk_vector[disk_id][1].count(unit_id)) disk_vector[disk_id][1].erase(unit_id);
             }
         }
     }
@@ -51,19 +52,19 @@ void timeOutRequest(vector<int> &busyId)
     vector<int>().swap(out_time_request[executeTime]);  // 清空
 }
 
-int cal_min_dist(int ptr[], int disk_id, int to)
+int cal_min_dist(int ptr[], int disk_id, int ptr_id, int to)
 {
     //**计算 指针以及第disk_id个磁盘中所有待读单元 到to单元的最短距离（这里特指到达to）
     //**神奇的贪心策略，但是很奇怪
     //**这个贪心没有干过 按磁盘待读取单元数多少去排序 的策略
     int res = to - ptr[disk_id] - 1;
     if (res < 0) res += V;
-    if (disk_vector[disk_id].size())
+    if (disk_vector[disk_id][ptr_id].size())
     {
         int tmp;
-        auto it = disk_vector[disk_id].upper_bound(to);  // 求to在环上的前驱
-        if (it == disk_vector[disk_id].begin())
-            tmp = to - *prev(disk_vector[disk_id].end());
+        auto it = disk_vector[disk_id][ptr_id].upper_bound(to);  // 求to在环上的前驱
+        if (it == disk_vector[disk_id][ptr_id].begin())
+            tmp = to - *prev(disk_vector[disk_id][ptr_id].end());
         else
             tmp = to - *prev(it);
         if (tmp < 0) tmp += V;
@@ -72,34 +73,38 @@ int cal_min_dist(int ptr[], int disk_id, int to)
     return res;
 }
 
-int cal_to_pos(int disk_id, int pos)
+int cal_to_pos(int disk_id, int ptr_id,int pos)
 {
     //**计算第disk_id个磁盘从第pos个单元出发下一个待读取单元在哪
-    auto it = disk_vector[disk_id].lower_bound(pos);
-    if (it == disk_vector[disk_id].end())
-        return *disk_vector[disk_id].begin();
+    auto it = disk_vector[disk_id][ptr_id].lower_bound(pos);
+    if (it == disk_vector[disk_id][ptr_id].end())
+        return *disk_vector[disk_id][ptr_id].begin();
     else
         return *it;
 }
 
-int cal_min_near_dist(int disk_id, int pos)
+int cal_min_near_dist(int disk_id, int ptr_id,int pos)
 {
     //**计算 指针以及第disk_id个磁盘中所有待读单元 与to单元的最短距离（不特指顺序）
-    int resL = min(cal_min_dist(ptr[0], disk_id, pos), cal_min_dist(ptr[1], disk_id, pos));
-    int resR = cal_to_pos(disk_id, pos) - pos;
+    int resL = min(cal_min_dist(ptr[0], ptr_id,disk_id, pos), cal_min_dist(ptr[1], ptr_id,disk_id, pos));
+    int resR = cal_to_pos(disk_id,ptr_id, pos) - pos;
     if (resR < 0) resR += V;
     return min(resL, resR);
 }
 
-int cal_weight(int disk_id, int pos)  // test
+int cal_weight(int disk_id, int ptr_id,int pos)  // test
 {
     static array<long double, 2> weight_to_choose_disk = {A, 0};  // 前者越大则距离更重要，后者越大则任务数更重要 关注A的值 另一个值在下面算 保持相加为1 参数A 范围[0,1]
     weight_to_choose_disk[1] = 1 - weight_to_choose_disk[0];
-    return -cal_min_near_dist(disk_id, pos) * weight_to_choose_disk[0] - disk_vector[disk_id].size() * weight_to_choose_disk[1];
+    return -cal_min_near_dist(disk_id,ptr_id, pos) * weight_to_choose_disk[0] - disk_vector[disk_id][ptr_id].size() * weight_to_choose_disk[1];
 };
 
 void readRequest(vector<int> &busyId)
 {
+    auto calWhichPtr=[&](int disk_id,int unit_id)
+    {
+        return unit_id>=divide_line[disk_id];
+    };
     int n_read;
     int request_id, object_id;
     scanf("%d", &n_read);
@@ -123,36 +128,36 @@ void readRequest(vector<int> &busyId)
                 // mn代表第d个副本对应的磁盘编号，now代表第j个
                 int to1 = object[object_id].unit[d][k], to2 = object[object_id].unit[j][k];
 
-                long double mark1 = cal_weight(mn, to1), mark2 = cal_weight(now, to2);
+                long double mark1 = cal_weight(mn,calWhichPtr(mn,object[object_id].unit[d][k]),to1), mark2 = cal_weight(now,calWhichPtr(now,object[object_id].unit[j][k]), to2);
 
                 if (mark1 < mark2) d = j;  //**按最短距离判断磁盘优劣
             }
             int mn = object[object_id].replica[d];                 // 放在哪个磁盘
-            disk_vector[mn].insert(object[object_id].unit[d][k]);  // 待处理单元放入磁盘容器
+            disk_vector[mn][calWhichPtr(mn,object[object_id].unit[d][k])].insert(object[object_id].unit[d][k]);  // 待处理单元放入磁盘容器
             object[object_id].request[k].insert({request_id, k});  // 这个vec存储该对象的第i个块与哪些请求相关，存的值是request_id
             auto calDist = [&](int ptr, int pos) { return (pos - ptr - 1 + V) % V; };
             //cerr<<"C="<<C<<" D="<<D<<"\n";
-            auto checkIfAbort = [&]()
-            {
-                if (disk_vector[mn].size() < 800) return false;  // 如果不繁忙 很有可能能满足 所以不要废弃
-                int pos = object[object_id].unit[d][k];
-                int distance0 = calDist(ptr[0][mn], pos);
-                int distance1 = calDist(ptr[1][mn], pos);
-                if (min(distance0, distance1) > G * 35.2) return true;  // pass也很难pass到
-                return false;
-            };
-            ifAbort |= checkIfAbort();
+            // auto checkIfAbort = [&]()
+            // {
+            //     if (disk_vector[mn][ptr_id].size() < 800) return false;  // 如果不繁忙 很有可能能满足 所以不要废弃
+            //     int pos = object[object_id].unit[d][k];
+            //     int distance0 = calDist(ptr[0][mn], pos);
+            //     int distance1 = calDist(ptr[1][mn], pos);
+            //     if (min(distance0, distance1) > G * 35.2) return true;  // pass也很难pass到
+            //     return false;
+            // };
+            // ifAbort |= checkIfAbort();
         }
-        if (ifAbort) quitRequest(request_id, busyId);
+        //if (ifAbort) quitRequest(request_id, busyId);
     }
 }
 
-void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选择好第几根针 就能保持原来的逻辑
+void read(int diskId, int ptr[], int ptr_id,int last_time[], vector<int> &finish)  // 选择好第几根针 就能保持原来的逻辑
 {
     string res;  //**该磁盘在该时间片内的操作
     //**处理jump-----------------------------------------------------
     static constexpr int read_time[8] = {64, 52, 42, 34, 28, 23, 19, 16};  // 已读i次后下次读所需时间
-    if (!disk_vector[diskId].size())
+    if (!disk_vector[diskId][ptr_id].size())
     {
         // cout << "#\n";
         // 原计划是什么都不做 但是显然是一直read比较好
@@ -170,7 +175,7 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选�
         return;
     }
 
-    int to = cal_to_pos(diskId, ptr[diskId] + 1);  //**读取顺序策略是不管进入容器顺序，优先读取距离最近的
+    int to = cal_to_pos(diskId, ptr_id,ptr[diskId] + 1);  //**读取顺序策略是不管进入容器顺序，优先读取距离最近的
     int dis = to - ptr[diskId] - 1;                // 距离目标单元的距离
     if (dis < 0) dis += V;
     if (dis > G)
@@ -189,7 +194,7 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选�
     pass_read_dp[0][last_time[diskId]] = pair<int, string>(G, "");  // 初始化
     for (int j = 0; j < 70; j++)                                    // 最多读1000/16个单元，1000是G的最大值
     {
-        if (!disk_vector[diskId].size())  // 没有要读的
+        if (!disk_vector[diskId][ptr_id].size())  // 没有要读的
         {
             pair<int, string> best_option = {-1, ""};  // 花费时间最少的操作
             for (int k = 0; k < 8; k++) best_option = max(best_option, pass_read_dp[j][k]);
@@ -199,7 +204,7 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选�
             break;
         }
 
-        int to = cal_to_pos(diskId, ptr[diskId] + 1);  //**读取顺序策略是不管进入容器顺序，优先读取距离最近的
+        int to = cal_to_pos(diskId,ptr_id, ptr[diskId] + 1);  //**读取顺序策略是不管进入容器顺序，优先读取距离最近的
         int dis = to - ptr[diskId] - 1;                // 距离目标单元的距离
         if (dis < 0) dis += V;
         for (int k = 0; k < 8; k++) pass_read_dp[j + 1][k] = {-1, ""};  // 剩余时间小于0就不可行了
@@ -261,7 +266,7 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish)  // 选�
             }
 
             set<array<int, 2>>().swap(object[disk[diskId][to]].request[disk_uid[diskId][to]]);  // 清空并释放空间
-            disk_vector[diskId].erase(to);
+            disk_vector[diskId][ptr_id].erase(to);
         }
         else
         {
@@ -284,7 +289,6 @@ void read_action()
     timeOutRequest(busyId);  // 超时请求
 
     readRequest(busyId);  // 读取请求
-
     vector<int> finish;  // 此次完成的请求
     for (int i = 1; i <= N; i++)
     {
@@ -301,23 +305,23 @@ void read_action()
             string res = "j " + to_string(target + 1);
             printf("%s\n", res.c_str());
         };
-        auto jumpToUnit = [&](int disk_id, int &x, const int another, int &lastTime) -> void  // 要改变的是x x要跳到another的对应位置
+        auto jumpToUnit = [&](int disk_id, int &x, int ptr_id,const int another, int &lastTime) -> void  // 要改变的是x x要跳到another的对应位置
         {
             int target;
-            if (disk_vector[disk_id].size() < 2)
+            if (disk_vector[disk_id][ptr_id].size() < 2)
                 target = (another + V / 2) % V;
             else
             {
-                auto it = disk_vector[disk_id].lower_bound(another);
-                int times = disk_vector[disk_id].size() / 2;
+                auto it = disk_vector[disk_id][ptr_id].lower_bound(another);
+                int times = disk_vector[disk_id][ptr_id].size() / 2;
                 while (times--)
                 {
-                    if (it == disk_vector[disk_id].end())
-                        it = disk_vector[disk_id].begin();
+                    if (it == disk_vector[disk_id][ptr_id].end())
+                        it = disk_vector[disk_id][ptr_id].begin();
                     else
                         it++;
                 }
-                if (it == disk_vector[disk_id].end()) it = disk_vector[disk_id].begin();
+                if (it == disk_vector[disk_id][ptr_id].end()) it = disk_vector[disk_id][ptr_id].begin();
                 target = *it;
                 target--;
             }
@@ -326,21 +330,8 @@ void read_action()
             string res = "j " + to_string(target + 1);
             printf("%s\n", res.c_str());
         };
-        if (!disk_vector[i].size())
-        {
-            jumpToUnit(i, ptr[0][i], ptr[1][i], last_time[0][i]);
-            read(i, ptr[1], last_time[1], finish);
-        }
-        else if (checkIfJump(ptr[0][i], ptr[1][i]) && disk_vector[i].size() > 1)
-        {
-            jumpToUnit(i, ptr[0][i], ptr[1][i], last_time[0][i]);
-            read(i, ptr[1], last_time[1], finish);
-        }
-        else
-        {
-            read(i, ptr[0], last_time[0], finish);
-            read(i, ptr[1], last_time[1], finish);
-        }
+        read(i, ptr[0], 0,last_time[0], finish);
+        read(i, ptr[1], 1,last_time[1], finish);
     }
 
     printf("%d\n", (int)finish.size());
