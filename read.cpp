@@ -43,13 +43,48 @@ void quitRequest(int request_id, vector<int> &busyId)
 
 void timeOutRequest(vector<int> &busyId)
 {
-    int i = 0;
-    int executeTime = (timestamp + i) % EXTRA_TIME;
-    for (int request_id : out_time_request[executeTime])  // 获取哪些请求超时
+    vector<int>tmp_disk_vector[MAX_DISK_NUM][2];
+    for (int i=1;i<=N;i++) 
+        for (int j=0;j<=1;j++)
+            for (int v:disk_vector[i][j]) tmp_disk_vector[i][j].push_back(v);
+    for (int i=0;i<1;i++)
     {
-        quitRequest(request_id, busyId);
+        int executeTime = (timestamp + i) % EXTRA_TIME;
+        vector<int> new_out_time_request;
+        
+        for (int request_id : out_time_request[executeTime])  // 获取哪些请求超时
+        {
+            // int object_id = request[request_id].object_id;
+            // bool ifAbort=false;
+            // for (int block_id : request[request_id].rest)   // 获取对象在哪个块
+            // {
+            //     // 删除这个对象在这个块上的请求
+            //     if (object[object_id].request[block_id].count({request_id, block_id})) object[object_id].request[block_id].erase({request_id, block_id});
+            //     bool canRead=false;
+            //     for (int copy_id = 1; copy_id <= 3; copy_id++)
+            //     {
+            //         int disk_id = object[object_id].replica[copy_id];
+            //         int unit_id = object[object_id].unit[copy_id][block_id];
+            //         for (int j=0;j<=1;j++)
+            //         {
+            //             auto it=lower_bound(tmp_disk_vector[disk_id][j].begin(),tmp_disk_vector[disk_id][j].end(),ptr[j][disk_id]+1);
+            //             if (disk_vector[disk_id][j].count(unit_id))
+            //             {
+            //                 int num_dist=distance(it,lower_bound(tmp_disk_vector[disk_id][j].begin(),tmp_disk_vector[disk_id][j].end(),unit_id));
+            //                 if (num_dist<0) num_dist+=disk_vector[disk_id][j].size();
+            //                 if (num_dist*0<G*i) canRead=true; 
+            //             }
+            //         }
+            //     }
+            //     ifAbort|=!canRead;    
+            // }
+            // if (!i||ifAbort) quitRequest(request_id, busyId);
+            // else new_out_time_request.push_back(request_id);
+            quitRequest(request_id, busyId);
+        }
+        swap(new_out_time_request,out_time_request[executeTime]);
+        vector<int>().swap(new_out_time_request);  // 清空
     }
-    vector<int>().swap(out_time_request[executeTime]);  // 清空
 }
 
 int cal_min_dist(int ptr[], int disk_id, int ptr_id, int to)
@@ -149,6 +184,7 @@ void readRequest(vector<int> &busyId)
             // ifAbort |= checkIfAbort();
         }
         //if (ifAbort) quitRequest(request_id, busyId);
+
     }
 }
 
@@ -262,6 +298,8 @@ void read(int diskId, int ptr[], int ptr_id,int last_time[], vector<int> &finish
                 {
                     finish.push_back(request_id);
                     request[request_id].is_done = true;
+                    vector<int>tmp;
+                    quitRequest(request_id,tmp);
                 }
             }
 
