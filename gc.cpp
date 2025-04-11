@@ -37,16 +37,19 @@ void do_swap(int disk_id, int pos1, int pos2)
         }
         object[id1].unit[rep_id1][disk_uid[disk_id][pos1]] = pos2;
         object[id2].unit[rep_id2][disk_uid[disk_id][pos2]] = pos1;
+        int ptr_id1=0,ptr_id2=0;
+        if (!disk_vector[ptr_id1][disk_id].count(pos1)) ptr_id1=1;
+        if (!disk_vector[ptr_id2][disk_id].count(pos2)) ptr_id2=1;
 
-        if (disk_vector[disk_id].count(pos1) && !disk_vector[disk_id].count(pos2))
+        if (disk_vector[ptr_id1][disk_id].count(pos1) && !disk_vector[ptr_id2][disk_id].count(pos2))
         {
-            disk_vector[disk_id].erase(pos1);
-            disk_vector[disk_id].insert(pos2);
+            disk_vector[ptr_id1][disk_id].erase(pos1);
+            disk_vector[ptr_id2][disk_id].insert(pos2);
         }
-        else if (disk_vector[disk_id].count(pos2) && !disk_vector[disk_id].count(pos1))
+        else if (disk_vector[ptr_id2][disk_id].count(pos2) && !disk_vector[ptr_id1][disk_id].count(pos1))
         {
-            disk_vector[disk_id].erase(pos2);
-            disk_vector[disk_id].insert(pos1);
+            disk_vector[ptr_id2][disk_id].erase(pos2);
+            disk_vector[ptr_id1][disk_id].insert(pos1);
         }
 
         swap(disk[disk_id][pos1], disk[disk_id][pos2]);
@@ -68,14 +71,14 @@ void do_swap(int disk_id, int pos1, int pos2)
 
         object[id].unit[rep_id][disk_uid[disk_id][pos1]] = pos2;
 
-        if (disk_vector[disk_id].count(pos1))
-        {
-            disk_vector[disk_id].erase(pos1);
-            disk_vector[disk_id].insert(pos2);
-        }
+        // if (disk_vector[disk_id].count(pos1))
+        // {
+        //     disk_vector[disk_id].erase(pos1);
+        //     disk_vector[disk_id].insert(pos2);
+        // }
 
-        swap(disk[disk_id][pos1], disk[disk_id][pos2]);
-        swap(disk_uid[disk_id][pos1], disk_uid[disk_id][pos2]);
+        // swap(disk[disk_id][pos1], disk[disk_id][pos2]);
+        // swap(disk_uid[disk_id][pos1], disk_uid[disk_id][pos2]);
     }
 }
 
@@ -396,7 +399,7 @@ void gc_action()
     printf("GARBAGE COLLECTION\n");
     for (int i = 1; i <= N; i++)
     {
-        auto gc_action = do_gc4(i);
+        vector<array<int,2>> gc_action ;
         printf("%d\n", (int)gc_action.size());
         for (auto [x, y] : gc_action)
         {
