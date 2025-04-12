@@ -1,7 +1,0 @@
-起始参数: A = 0.912225, B = 14.018311, C = 5050.000000, D = 2500.000000, Score = 19635843.5899
-迭代   1 候选解: A_candidate = 0.912112, B_candidate = 12.850556, C_candidate = 4241.403075, D_candidate = 2485.572652, score_candidate = 19554660.9774
-迭代   1: 以概率接受候选解 (p = 0.816314, rand = 0.364129)
-迭代   1: 当前解: A_current = 0.912112, B_current = 12.850556, C_current = 4241.403075, D_current = 2485.572652, score_current = 19554660.9774, 温度 T = 384000.000000
-迭代   2 候选解: A_candidate = 0.953211, B_candidate = 11.904609, C_candidate = 3576.243929, D_candidate = 2321.893888, score_candidate = 18935712.5174
-迭代   2: 拒绝候选解 (p = 0.199519, rand = 0.681296)
-迭代   2: 当前解: A_current = 0.912112, B_current = 12.850556, C_current = 4241.403075, D_current = 2485.572652, score_current = 19554660.9774, 温度 T = 368640.000000

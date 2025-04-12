@@ -70,7 +70,7 @@ def run_test(A_value, B_value, C_value, D_value, root_dir, build_dir):
 
     # 运行测试程序
     test_run = subprocess.run(
-        ["python3", "./run.py", "./interactor", "./data/sample_practice.in", "./code_craft"],
+        ["python3", "./run.py", "./interactor", "./data/sample_official.in", "./code_craft"],
         cwd=root_dir,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
