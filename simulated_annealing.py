@@ -123,8 +123,8 @@ def simulated_annealing(root_dir):
         min_step_factor = 0.2  # 在低温时也保持至少 20% 的基础步长
 
         # 初始参数（可调整为已知较优解加快搜索）
-        A_current = 0.912225
-        B_current = 14.018311
+        A_current = 0.5
+        B_current = 15
         C_current = 5050.0   # 可根据实际情况调整初始值
         D_current = 2500.0   # 可根据实际情况调整初始值
 

@@ -1,0 +1,19 @@
+起始参数: A = 0.500000, B = 15.000000, C = 5050.000000, D = 2500.000000, Score = 10416539.5892
+迭代   1 候选解: A_candidate = 0.438872, B_candidate = 15.366652, C_candidate = 5128.199018, D_candidate = 2392.348515, score_candidate = 10305527.1241
+迭代   1: 拒绝候选解 (p = 0.757652, rand = 0.885429)
+迭代   1: 当前解: A_current = 0.500000, B_current = 15.000000, C_current = 5050.000000, D_current = 2500.000000, score_current = 10416539.5892, 温度 T = 384000.000000
+迭代   2 候选解: A_candidate = 0.503731, B_candidate = 14.363436, C_candidate = 5176.662629, D_candidate = 2795.630630, score_candidate = 10219123.9574
+迭代   2: 拒绝候选解 (p = 0.598037, rand = 0.769192)
+迭代   2: 当前解: A_current = 0.500000, B_current = 15.000000, C_current = 5050.000000, D_current = 2500.000000, score_current = 10416539.5892, 温度 T = 368640.000000
+迭代   3 候选解: A_candidate = 0.543377, B_candidate = 17.373869, C_candidate = 4699.126975, D_candidate = 2580.233148, score_candidate = 10487864.1303
+迭代   3: 直接接受候选解。
+迭代   3: 当前解: A_current = 0.543377, B_current = 17.373869, C_current = 4699.126975, D_current = 2580.233148, score_current = 10487864.1303, 温度 T = 353894.400000
+迭代   4 候选解: A_candidate = 0.551826, B_candidate = 18.192992, C_candidate = 4839.341097, D_candidate = 2306.811550, score_candidate = 10493407.8455
+迭代   4: 直接接受候选解。
+迭代   4: 当前解: A_current = 0.551826, B_current = 18.192992, C_current = 4839.341097, D_current = 2306.811550, score_current = 10493407.8455, 温度 T = 339738.624000
+迭代   5 候选解: A_candidate = 0.544105, B_candidate = 19.048234, C_candidate = 5063.905486, D_candidate = 2064.039381, score_candidate = 10536301.6127
+迭代   5: 直接接受候选解。
+迭代   5: 当前解: A_current = 0.544105, B_current = 19.048234, C_current = 5063.905486, D_current = 2064.039381, score_current = 10536301.6127, 温度 T = 326149.079040
+迭代   6 候选解: A_candidate = 0.499926, B_candidate = 20.216089, C_candidate = 5389.700186, D_candidate = 1923.740740, score_candidate = 10616858.6372
+迭代   6: 直接接受候选解。
+迭代   6: 当前解: A_current = 0.499926, B_current = 20.216089, C_current = 5389.700186, D_current = 1923.740740, score_current = 10616858.6372, 温度 T = 313103.115878

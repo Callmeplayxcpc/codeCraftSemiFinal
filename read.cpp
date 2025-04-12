@@ -16,6 +16,8 @@ int ptr[2][20], last_time[2][20]; // 复赛 有两根针 第一维表示第几�
 //**ptr代表第i个磁盘的指针在哪个单元，为了方便实现，它的值是0-V-1，实际位置是ptr[i]+1
 //**last_time表示第i个磁盘上个时间片最后一次操作的读取时间是多少，是为了跨时间片维护，如果该操作是移动，那就置为大值
 
+
+
 void quitRequest(int request_id, vector<int> &busyId)
 {
     if (!request[request_id].is_done && !object[request[request_id].object_id].is_delete) // 如果这个请求还没完成
@@ -48,7 +50,7 @@ void timeOutRequest(vector<int> &busyId)
     for (int i = 1; i <= N; i++)
         for (int v : disk_vector[i])
             tmp_disk_vector[i].push_back(v);
-    int step = 20; // 检查的步长
+    int step = 50; // 检查的步长
     for (int i = 0; i < EXTRA_TIME; i += step)
     {
         int executeTime = (timestamp + i) % EXTRA_TIME;
@@ -79,12 +81,12 @@ void timeOutRequest(vector<int> &busyId)
                         if (num_dist0 < 0)
                             num_dist0 += disk_vector[disk_id].size();
 
-                        int num_dist1 = distance(it1, lower_bound(tmp_disk_vector[disk_id].begin(), tmp_disk_vector[disk_id].end(), unit_id));
+                        int num_dist1 =distance (it1, lower_bound(tmp_disk_vector[disk_id].begin(), tmp_disk_vector[disk_id].end(), unit_id));
                         if (num_dist1 < 0)
                             num_dist1 += disk_vector[disk_id].size();
 
                         int num_dist = min(num_dist0, num_dist1);
-                        if (!i || num_dist * 32 < G * i)
+                        if (!i || num_dist * 40 < G * i)
                             canRead = true;
                     }
                 }
@@ -97,6 +99,58 @@ void timeOutRequest(vector<int> &busyId)
         }
         swap(new_out_time_request, out_time_request[executeTime]);
         vector<int>().swap(new_out_time_request); // 清空
+    }
+    if (timestamp>25000)
+    {
+        for (int i = EXTRA_TIME-70; i < EXTRA_TIME-30; i +=2)
+        {
+            int executeTime = (timestamp + i) % EXTRA_TIME;
+            vector<int> new_out_time_request;
+    
+            for (int request_id : out_time_request[executeTime]) // 获取哪些请求超时
+            {
+                if (request[request_id].is_done)
+                    continue;
+                int object_id = request[request_id].object_id;
+                if (object[object_id].is_delete)
+                    continue;
+                bool ifAbort = false;
+                for (int block_id : request[request_id].rest) // 获取对象在哪个块
+                {
+    
+                    bool canRead = false;
+                    for (int copy_id = 1; copy_id <= 3; copy_id++)
+                    {
+                        int disk_id = object[object_id].replica[copy_id];
+                        int unit_id = object[object_id].unit[copy_id][block_id];
+    
+                        auto it0 = lower_bound(tmp_disk_vector[disk_id].begin(), tmp_disk_vector[disk_id].end(), ptr[0][disk_id] + 1);
+                        auto it1 = lower_bound(tmp_disk_vector[disk_id].begin(), tmp_disk_vector[disk_id].end(), ptr[1][disk_id] + 1);
+                        if (disk_vector[disk_id].count(unit_id))
+                        {
+                            int num_dist0 = distance(it0, lower_bound(tmp_disk_vector[disk_id].begin(), tmp_disk_vector[disk_id].end(), unit_id));
+                            if (num_dist0 < 0)
+                                num_dist0 += disk_vector[disk_id].size();
+    
+                            int num_dist1 =distance (it1, lower_bound(tmp_disk_vector[disk_id].begin(), tmp_disk_vector[disk_id].end(), unit_id));
+                            if (num_dist1 < 0)
+                                num_dist1 += disk_vector[disk_id].size();
+    
+                            int num_dist = min(num_dist0, num_dist1);
+                            if (!i || num_dist * 40 < G * i)
+                                canRead = true;
+                        }
+                    }
+                    ifAbort |= !canRead;
+                }
+                if (!i || ifAbort)
+                    quitRequest(request_id, busyId);
+                else
+                    new_out_time_request.push_back(request_id);
+            }
+            swap(new_out_time_request, out_time_request[executeTime]);
+            vector<int>().swap(new_out_time_request); // 清空
+        }
     }
 }
 
@@ -143,7 +197,7 @@ int cal_min_near_dist(int disk_id, int pos)
     return min(resL, resR);
 }
 
-int cal_weight(int disk_id, int pos) // test
+double cal_weight(int disk_id, int pos) // test
 {
     static array<long double, 2> weight_to_choose_disk = {A, 0}; // 前者越大则距离更重要，后者越大则任务数更重要 关注A的值 另一个值在下面算 保持相加为1 参数A 范围[0,1]
     weight_to_choose_disk[1] = 1 - weight_to_choose_disk[0];
@@ -362,6 +416,8 @@ void read_action()
     readRequest(busyId); // 读取请求
 
     vector<int> finish; // 此次完成的请求
+
+    static int BIGJUMP=0;
     for (int i = 1; i <= N; i++)
     {
         auto checkIfJump = [&](const int a, const int b) // 一个指针在a位置,另一个指针在b位置
@@ -379,6 +435,8 @@ void read_action()
         };
         auto jumpToUnit = [&](int disk_id, int &x, const int another, int &lastTime) -> void // 要改变的是x x要跳到another的对应位置
         {
+            BIGJUMP++;
+
             int target;
             if (disk_vector[disk_id].size() < 2)
                 target = (another + V / 2) % V;

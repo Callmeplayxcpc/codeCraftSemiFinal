@@ -9,11 +9,11 @@ option(BUILD_SHARED_LIBS    ""  OFF) # 不要修改
 
 # 设置 A_VALUE 和 B_VALUE 的默认值
 if(NOT DEFINED A_VALUE)
-    set(A_VALUE 0.823711)  # 默认值
+    set(A_VALUE 0.702393)  # 默认值
 endif()
 
 if(NOT DEFINED B_VALUE)
-    set(B_VALUE 18.076513)  # 默认值
+    set(B_VALUE 20.193017)  # 默认值
 endif()
 
 # 设置 C_VALUE 和 D_VALUE 的默认值
