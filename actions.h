@@ -10,6 +10,7 @@ void write_action();
 void read_action();
 void clean();
 void gc_action();
+void divide_action();
 
 extern int total_tag_weights;
 extern int tag_weights[MAX_LABEL];

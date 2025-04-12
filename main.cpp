@@ -91,6 +91,8 @@ int main()
         }
     }
 
+    for (int j = 1; j <= (T + 104) / FRE_PER_SLICING + 1; j++) scanf("%d",&g[j]);
+    
     // 初始化
     Init();
 
@@ -105,9 +107,11 @@ int main()
         delete_action();     // 处理删除事件
         write_action();      // 处理写入事件
         read_action();       // 处理读取事件
+        //if (t%105==0) divide_action();
         if (t % FRE_PER_SLICING == 0)
         {
             gc_action();
+         //   divide_action();
         }
     }
     // 处理结束，清理资源

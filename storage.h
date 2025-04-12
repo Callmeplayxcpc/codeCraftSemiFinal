@@ -82,4 +82,6 @@ extern int timestamp;
 extern int tag_num[MAX_LABEL];
 extern int total_object_num;
 
+extern int g[86600];
+
 #endif  // STORAGE_H

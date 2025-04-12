@@ -33,3 +33,6 @@ int timestamp;  // 当前交互阶段处于哪一个时间片
 
 int tag_num[MAX_LABEL];  // 在write_single_rep4中使用，代表不同标签在磁盘存储的总块数
 int total_object_num;    // tag_num之和
+
+
+int g[86600];
