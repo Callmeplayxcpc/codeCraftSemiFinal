@@ -59,6 +59,7 @@ void insert_object(int obj_id, int disk_id, int pos, int rep_id, int blo_id)
     object[obj_id].unit[rep_id][blo_id] = pos;
     disk_uid[disk_id][pos] = blo_id;
     tag_pos[disk_id][object[obj_id].tag].insert(pos);  // 统计每个标签的在磁盘上的位置
+    tag_pos[disk_id][0].insert(pos);
     disk_empty[disk_id].erase(pos);  // 删除空闲单元
 }
 

@@ -279,8 +279,18 @@ void read(int diskId, int ptr[], int last_time[], vector<int> &finish) // 选择
         //     res += 'r';
         //     ptr[diskId]=(ptr[diskId]+1)%V;
         // }
-        res += '#';
-        printf("%s\n", res.c_str());
+        //res += '#';
+        if(!tag_pos[diskId][0].size())res += '#';
+        else{
+            auto it=tag_pos[diskId][0].lower_bound(ptr[diskId]+1);
+            if(it==tag_pos[diskId][0].end())it=tag_pos[diskId][0].begin();
+            if((*it)!=(ptr[diskId]+1)){
+                res+="j "+to_string(*it);
+                ptr[diskId]=(*it)-1;
+            }
+            else res+='#';
+        }
+        printf("%s\n", res.c_str()); 
         return;
     }
 

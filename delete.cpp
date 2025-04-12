@@ -68,6 +68,7 @@ void delete_action()
                 disk_vector[object[id].replica[j]].erase(object[id].unit[j][k]);
                 //删除tag_pos中该对象的块
                 tag_pos[object[id].replica[j]][object[id].tag].erase(object[id].unit[j][k]);
+                tag_pos[object[id].replica[j]][0].erase(object[id].unit[j][k]);
             }
             disk_size[object[id].replica[j]][0] -= object[id].size;  //**更新占用单元数
             disk_size[object[id].replica[j]][object[id].tag] -= object[id].size;
